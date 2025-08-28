@@ -25,7 +25,7 @@ if (
 const connectionString =
   process.env.DATABASE_RESTRICTED_URL ?? // Prefer restricted user
   process.env.DATABASE_URL ??
-  (isTest ? 'postgres://user:pass@localhost:5432/testdb' : undefined)
+  (isTest ? 'postgresql://postgres:R1n@tu$1981@localhost:5432/testdb' : undefined)
 
 if (!connectionString) {
   throw new Error(

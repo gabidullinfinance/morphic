@@ -17,6 +17,14 @@ services:
     depends_on:
       - redis
       - searxng
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.morphic.entrypoints=websecure"
+      - "traefik.http.routers.morphic.rule=Host(`aproject.com`)"
+      - "traefik.http.routers.morphic.tls.certresolver=letsencrypt"
+      - "traefik.http.services.morphic.loadbalancer.server.port=3000"
+    networks:
+      - proxy
 
   redis:
     image: redis:alpine
@@ -39,3 +47,6 @@ services:
 volumes:
   redis_data:
   searxng_data:
+networks:
+  proxy:
+    external: true
