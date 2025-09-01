@@ -4,8 +4,8 @@ import { Model } from '@/lib/types/models'
 // Model configurations for each model type
 export const MODEL_TYPE_CONFIGS: Record<ModelType, Model> = {
   speed: {
-    id: 'gpt-5-mini',
-    name: 'GPT-5 mini',
+    id: 'yandexgpt/latest',
+    name: 'YandexGPT Pro',
     provider: 'OpenAI',
     providerId: 'openai',
     providerOptions: {
