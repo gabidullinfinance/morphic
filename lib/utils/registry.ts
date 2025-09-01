@@ -14,7 +14,7 @@ import {
 import { createOllama } from 'ollama-ai-provider'
 
 export const registry = createProviderRegistry({
-  openai: createOpenai({
+  openai: createOpenAI({
     baseURL: `${process.env.OPENAI_BASE_URL}`
   }),
   anthropic,
