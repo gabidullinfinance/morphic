@@ -9,8 +9,8 @@ import { isProviderEnabled } from '@/lib/utils/registry'
 export const maxDuration = 30
 
 const DEFAULT_MODEL: Model = {
-  id: 'gpt-4o-mini',
-  name: 'GPT-4o mini',
+  id: 'yandexgpt/latest',
+  name: 'YandexGPT Pro',
   provider: 'OpenAI',
   providerId: 'openai',
   enabled: true,

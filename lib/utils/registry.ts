@@ -14,7 +14,9 @@ import {
 import { createOllama } from 'ollama-ai-provider'
 
 export const registry = createProviderRegistry({
-  openai,
+  openai: createOpenai({
+    baseURL: `${process.env.OPENAI_BASE_URL}`
+  }),
   anthropic,
   google,
   groq,
@@ -92,7 +94,7 @@ export function getModel(model: string) {
 export function isProviderEnabled(providerId: string): boolean {
   switch (providerId) {
     case 'openai':
-      return !!process.env.OPENAI_API_KEY
+      return !!process.env.OPENAI_API_KEY && !!process.env.OPENAI_COMPATIBLE_API_BASE_URL
     case 'anthropic':
       return !!process.env.ANTHROPIC_API_KEY
     case 'google':
