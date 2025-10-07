@@ -1,6 +1,5 @@
 # Docker Compose configuration for the morphic-stack development environment
 
-name: morphic-stack
 services:
   morphic:
     image: ghcr.io/${GITHUB_REPOSITORY:-your-username/morphic}:latest
@@ -17,11 +16,20 @@ services:
     depends_on:
       - redis
       - searxng
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.morphic.entrypoints=websecure"
+      - "traefik.http.routers.morphic.rule=Host(`morphic.aproject.com`)"
+      - "traefik.http.routers.morphic.tls.certresolver=letsencrypt"
+      - "traefik.http.services.morphic.loadbalancer.server.port=3000"
+    networks:
+      - proxy
 
   redis:
     image: redis:alpine
     ports:
       - '6379:6379'
+    hostname: redislocal
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -39,3 +47,6 @@ services:
 volumes:
   redis_data:
   searxng_data:
+networks:
+  proxy:
+    external: true

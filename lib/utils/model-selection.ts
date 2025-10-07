@@ -5,8 +5,8 @@ import { ModelType } from '@/lib/types/model-type'
 import { Model } from '@/lib/types/models'
 
 const DEFAULT_MODEL: Model = {
-  id: 'gpt-5-mini',
-  name: 'GPT-5 mini',
+  id: 'openai-compatible',
+  name: 'YAGPT',
   provider: 'OpenAI',
   providerId: 'openai',
   providerOptions: {
