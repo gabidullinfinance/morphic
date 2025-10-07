@@ -43,7 +43,14 @@ services:
       - ./searxng-limiter.toml:/etc/searxng/limiter.toml
       - ./searxng-settings.yml:/etc/searxng/settings.yml
       - searxng_data:/data
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.searxng.entrypoints=websecure"
+      - "traefik.http.routers.searxng.rule=Host(`search.aproject.com`)"
+      - "traefik.http.routers.searxng.tls.certresolver=letsencrypt"
+      - "traefik.http.services.searxng.loadbalancer.server.port=8080"
+    networks:
+      - proxy
 volumes:
   redis_data:
   searxng_data:

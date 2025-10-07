@@ -12,7 +12,9 @@ export const messagesRelations = relations(messages, ({ one, many }) => ({
 export const chatsRelations = relations(chats, ({ many }) => ({
   messages: many(messages)
 }))
-
+export const feedbackRelations = relations(feedback, ({ many }) => ({
+  messages: many(messages)
+}))
 export const partsRelations = relations(parts, ({ one }) => ({
   message: one(messages, {
     fields: [parts.messageId],
