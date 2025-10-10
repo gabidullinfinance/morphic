@@ -69,18 +69,19 @@ export async function POST(req: Request) {
 
     const cookieStore = await cookies()
 
-    // Select the appropriate model based on model type preference
-    const selectedModel = selectModel({
-      cookieStore
-    })
-
     // Get search mode from cookie
     const searchModeCookie = cookieStore.get('searchMode')?.value
     const searchMode: SearchMode =
       searchModeCookie &&
       ['quick', 'planning', 'adaptive'].includes(searchModeCookie)
         ? (searchModeCookie as SearchMode)
-        : 'adaptive'
+        : 'quick'
+
+    // Select the appropriate model based on model type preference and search mode
+    const selectedModel = selectModel({
+      cookieStore,
+      searchMode
+    })
 
     if (!isProviderEnabled(selectedModel.providerId)) {
       return new Response(
@@ -91,6 +92,11 @@ export async function POST(req: Request) {
         }
       )
     }
+
+    const streamStart = performance.now()
+    perfLog(
+      `createChatStreamResponse - Start: model=${selectedModel.providerId}:${selectedModel.id}, searchMode=${searchMode}`
+    )
 
     const response = await createChatStreamResponse({
       message,
@@ -103,6 +109,8 @@ export async function POST(req: Request) {
       isNewChat,
       searchMode
     })
+
+    perfTime('createChatStreamResponse resolved', streamStart)
 
     // Invalidate the cache for this specific chat after creating the response
     // This ensures the next load will get fresh data

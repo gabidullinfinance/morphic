@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { UseChatHelpers } from '@ai-sdk/react'
 import { Copy, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { toast } from 'sonner'
 
+import type { SearchResultItem } from '@/lib/types'
 import type { UIDataTypes, UIMessage, UITools } from '@/lib/types/ai'
 import { cn } from '@/lib/utils'
+import { processCitations } from '@/lib/utils/citation'
 
 import { Button } from './ui/button'
 import { ChatShare } from './chat-share'
@@ -24,6 +26,7 @@ interface MessageActionsProps {
   className?: string
   status?: UseChatHelpers<UIMessage<unknown, UIDataTypes, UITools>>['status']
   visible?: boolean
+  citationMaps?: Record<string, Record<number, SearchResultItem>>
 }
 
 export function MessageActions({
@@ -36,23 +39,27 @@ export function MessageActions({
   enableShare,
   className,
   status,
-  visible = true
+  visible = true,
+  citationMaps
 }: MessageActionsProps) {
   const [feedbackScore, setFeedbackScore] = useState<number | null>(
     initialFeedbackScore ?? null
   )
+  const mappedMessage = useMemo(() => {
+    if (!message) return ''
+    return processCitations(message, citationMaps || {})
+  }, [message, citationMaps])
+
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
   const isLoading = status === 'submitted' || status === 'streaming'
 
-  // Do not render at all when actions should be hidden.
-  // Rendering while loading is allowed so previous messages keep their actions
-  // visible even during a new message's streaming.
-  if (!visible) {
+  // Keep the element mounted during loading to preserve layout; otherwise skip rendering.
+  if (!visible && !isLoading) {
     return null
   }
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(message)
+    await navigator.clipboard.writeText(mappedMessage)
     toast.success('Message copied to clipboard')
   }
 
@@ -92,9 +99,10 @@ export function MessageActions({
 
   return (
     <div
+      aria-hidden={!visible}
       className={cn(
         'flex items-center gap-0.5 self-end transition-opacity duration-200',
-        'opacity-100',
+        visible ? 'opacity-100' : 'pointer-events-none opacity-0 invisible',
         className
       )}
     >

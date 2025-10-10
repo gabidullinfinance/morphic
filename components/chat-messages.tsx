@@ -1,15 +1,15 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { UseChatHelpers } from '@ai-sdk/react'
 
 import type { UIDataTypes, UIMessage, UITools } from '@/lib/types/ai'
 import { cn } from '@/lib/utils'
+import { extractCitationMapsFromMessages } from '@/lib/utils/citation'
 
 import { AnimatedLogo } from './ui/animated-logo'
 import { ChatError } from './chat-error'
-import { DefaultSkeleton } from './default-skeleton'
 import { RenderMessage } from './render-message'
 
 // Import section structure interface
@@ -89,6 +89,16 @@ export function ChatMessages({
     return () => window.removeEventListener('resize', calculateOffset)
   }, [])
 
+  // Extract citation maps from all messages in all sections
+  const allCitationMaps = useMemo(() => {
+    const allMessages: UIMessage[] = []
+    sections.forEach(section => {
+      allMessages.push(section.userMessage)
+      allMessages.push(...section.assistantMessages)
+    })
+    return extractCitationMapsFromMessages(allMessages)
+  }, [sections])
+
   if (!sections.length) return null
 
   // Check if loading indicator should be shown
@@ -136,9 +146,8 @@ export function ChatMessages({
       if (toolCount > 1) {
         return false
       }
-      // Single tool: check if there's a next part
-      // If there's subsequent content, default to closed
-      return !hasNextPart
+      // Single tool results stay open even if more content follows
+      return true
     }
 
     // For tool-invocations, default to open
@@ -178,7 +187,7 @@ export function ChatMessages({
           <div
             key={section.id}
             id={`section-${section.id}`}
-            className="chat-section mb-8"
+            className="chat-section pb-14"
             style={
               sectionIndex === sections.length - 1
                 ? { minHeight: `calc(100dvh - ${offsetHeight}px)` }
@@ -200,6 +209,7 @@ export function ChatMessages({
                 addToolResult={addToolResult}
                 onUpdateMessage={onUpdateMessage}
                 reload={reload}
+                citationMaps={allCitationMaps}
               />
             </div>
 
@@ -226,6 +236,7 @@ export function ChatMessages({
                     onUpdateMessage={onUpdateMessage}
                     reload={reload}
                     isLatestMessage={isLatestMessage}
+                    citationMaps={allCitationMaps}
                   />
                 </div>
               )

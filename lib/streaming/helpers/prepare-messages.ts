@@ -56,7 +56,7 @@ export async function prepareMessages(
 
     const targetMessage = currentChat.messages[messageIndex]
     if (targetMessage.role === 'assistant') {
-      await deleteMessagesFromIndex(chatId, messageId)
+      await deleteMessagesFromIndex(chatId, messageId, userId)
       return currentChat.messages.slice(0, messageIndex)
     } else {
       // User message edit
@@ -65,7 +65,7 @@ export async function prepareMessages(
       }
       const messagesToDelete = currentChat.messages.slice(messageIndex + 1)
       if (messagesToDelete.length > 0) {
-        await deleteMessagesFromIndex(chatId, messagesToDelete[0].id)
+        await deleteMessagesFromIndex(chatId, messagesToDelete[0].id, userId)
       }
       const updatedChat = await loadChat(chatId, userId)
       return (
@@ -85,16 +85,28 @@ export async function prepareMessages(
 
     // Optimize for new chats: create chat and save message together
     if (isNewChat) {
-      // Use createChatWithFirstMessage for atomic operation
+      // Persist the chat and first message optimistically in the background
       const createStart = performance.now()
-      await createChatWithFirstMessage(
+      const persistencePromise = createChatWithFirstMessage(
         chatId,
         messageWithId,
         userId,
         DEFAULT_CHAT_TITLE
       )
-      perfTime('createChatWithFirstMessage completed', createStart)
-      perfTime('prepareMessages - Total', startTime)
+        .then(result => {
+          perfTime('createChatWithFirstMessage completed', createStart)
+          perfTime('prepareMessages - Total', startTime)
+          return result
+        })
+        .catch(error => {
+          console.error('Error creating chat with first message:', error)
+          throw error
+        })
+
+      context.pendingInitialSave = persistencePromise
+      context.pendingInitialUserMessage = messageWithId
+
+      perfTime('prepareMessages - Return (optimistic)', startTime)
       return [messageWithId]
     }
 
